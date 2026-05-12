@@ -80,7 +80,7 @@ const Container = styled.div`
     display: grid;
     gap: 10px;
     /* Forzamos 2 columnas exactas */
-    grid-template-columns: repeat(3, 1fr); 
+    grid-template-columns: repeat(2, 1fr); 
   }
 
    
