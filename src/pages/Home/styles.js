@@ -75,18 +75,22 @@ const Container = styled.div`
   gap: 20px;
 
 
-    
-  @media (max-width: 600px) {
-    display: grid;
-    gap: 10px;
-    /* Forzamos 2 columnas exactas */
-    grid-template-columns: repeat(2, 1fr); 
-  }
+ @media (max-width: 600px) {
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* Fuerza el tamaño */
+  gap: 10px;
+  width: 100%;
+  padding: 0 10px; /* Evita que peguen a los bordes */
+  box-sizing: border-box;
+}
 
    
 `;
 
 const Card = styled.div`
+  
+  width: 100%;           
+  box-sizing: border-box;
+
   background: #1e1b29;
   border: 1px solid #332a44;
   padding: 15px;
@@ -120,6 +124,18 @@ const Card = styled.div`
     }
   }
   &:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #6c5ce7; }
+
+
+
+  /* Cambia tu actual &:hover por este: */
+@media (min-width: 600px) {
+  &:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); 
+    border-color: #6c5ce7; 
+  }
+}
+
 `;
 
 const Pagination = styled.div`
