@@ -8,7 +8,8 @@ import './app.css';
 
 const App = () => {
   return (
-    <Router>
+    <Router basename="/Crypto-Tracker">
+
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
