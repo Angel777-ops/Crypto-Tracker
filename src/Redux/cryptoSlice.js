@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_KEY = "CG-CVSihdKbZ8xoL7sZbKMaGzoZ";
 
 // 1. Acción para las criptos individuales
-export const fetchCryptos = createAsyncThunk('crypto/fetchCryptos', async (page = 1, { rejectWithValue }) => {
+export const fetchCryptos = createAsyncThunk('crypto/fetchCryptos', async (page, { rejectWithValue }) => {
   try{
      const response = await axios.get(
     'https://api.coingecko.com/api/v3/coins/markets', 
@@ -29,6 +29,18 @@ export const fetchGlobalData = createAsyncThunk('crypto/fetchGlobalData', async 
   );
   return response.data.data; 
 });
+
+
+
+export const searchCryptos = createAsyncThunk(
+  'crypto/searchCryptos',
+  async (query) => {
+    const response = await axios.get(`https://api.coingecko.com/api/v3/search?query=${query}`);
+    // OJO: El endpoint /search devuelve un formato distinto, 
+    // asegúrate de mapearlo para que tus cartas sigan funcionando.
+    return response.data.coins; 
+  }
+);
 
 
 
@@ -70,6 +82,9 @@ const cryptoSlice = createSlice({
       .addCase(fetchGlobalData.fulfilled, (state, action) => {
         state.globalData = action.payload;
       });
+
+
+      
   },
 });
 

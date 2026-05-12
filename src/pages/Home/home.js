@@ -187,15 +187,48 @@ const portfolio = useSelector((state) => state.crypto.portfolio);
         ))}
       </Container>
 
-      <Pagination>
-        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&lt;</button>
-        {[1, 2, 3, 4, 5].map(num => (
-          <button key={num} className={page === num ? 'active' : ''} onClick={() => setPage(num)}>{num}</button>
-        ))}
-        <span style={{color: 'white'}}>...</span>
-        <button onClick={() => setPage(300)}>300</button>
-        <button onClick={() => setPage(p => p + 1)}>&gt;</button>
-      </Pagination>
+
+
+   <Pagination>
+    {/* 1. Botón Anterior */}
+    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>&lt;</button>
+
+    {/* 2. Botón Página 1 (Solo se muestra si no está ya en el rango dinámico) */}
+    {page > 3 && (
+      <>
+        <button onClick={() => setPage(1)} className={page === 1 ? 'active' : ''}>1</button>
+        <span style={{ color: 'white' }}>...</span>
+      </>
+    )}
+
+    {/* 3. Rango Dinámico (Tus 5 botones centrales) */}
+    {Array.from({ length: 5 }, (_, i) => {
+      const startPage = Math.min(Math.max(1, page - 2), 296);
+      const num = startPage + i;
+      return (
+        <button
+          key={num}
+          className={page === num ? 'active' : ''}
+          onClick={() => setPage(num)}
+        >
+          {num}
+        </button>
+      );
+    })}
+
+    {/* 4. Botón Página 300 (Solo se muestra si no está ya en el rango dinámico) */}
+    {page < 298 && (
+      <>
+        <span style={{ color: 'white' }}>...</span>
+        <button onClick={() => setPage(300)} className={page === 300 ? 'active' : ''}>300</button>
+      </>
+    )}
+
+    {/* 5. Botón Siguiente */}
+    <button onClick={() => setPage(p => p + 1)} disabled={page === 300}>&gt;</button>
+</Pagination>
+
+
 
 
        {globalData && (
