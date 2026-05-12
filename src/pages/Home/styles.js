@@ -144,8 +144,33 @@ const Pagination = styled.div`
   align-items: center;
   gap: 10px;
   margin-top: 40px;
-  button { padding: 8px 15px; cursor: pointer; border: 1px solid #332a44; background: #1e1b29; color: white; border-radius: 4px; &.active { background: #6c5ce7; } }
+  flex-wrap: wrap; /* Evita que los botones se salgan de la pantalla */
+
+  button { 
+    padding: 8px 15px; 
+    cursor: pointer; 
+    border: 1px solid #332a44; 
+    background: #1e1b29; 
+    color: white; 
+    border-radius: 4px; 
+    transition: 0.2s; /* Hace suave el cambio de tamaño */
+    
+    &.active { 
+      background: #6c5ce7; 
+    } 
+  }
+
+  /* --- CELULARES --- */
+  @media (max-width: 600px) {
+    gap: 6px; /* Reduce la separación en móviles */
+    
+    button {
+      padding: 6px 10px; /* Hace los botones más pequeños */
+      font-size: 0.85rem; /* Reduce el tamaño del texto */
+    }
+  }
 `;
+
 
 
 const GlobalStatsBar = styled.div`
@@ -369,5 +394,8 @@ const ViewMoreButton = styled.button`
     background: rgba(0, 255, 136, 0.05);
   }
 `;
+
+
+
 
 export { ViewMoreButton, MainWrapper, DashboardGrid, InfoCard, MiniItem, SearchInput, Container, Card, Pagination, GlobalStatsBar, Footer, TickerWrapper, TickerContent, TickerItem, LivePulseWrapper, PulseDot, ScannerWrapper, BlockGrid, Block, ScannerText };
