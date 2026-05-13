@@ -14,9 +14,47 @@ const Details = () => {
   const navigate = useNavigate();
   const [chartData, setChartData] = useState([]); 
 
-  const coin = useSelector((state) => 
+  // 1. Intentamos leer de Redux la moneda seleccionada
+  const reduxCoin = useSelector((state) => 
     state.crypto.list.find((item) => item.id === id)
   );
+
+  // 2. Estado local dinámico: Toma el valor de Redux si existe, sino inicia en null
+  const [coin, setCoin] = useState(reduxCoin || null);
+
+  // 3. NUEVO EFECTO: Si se presiona F5 y no hay datos en Redux, los descarga de la API
+  useEffect(() => {
+    if (!coin && id) {
+      const fetchCoinBackup = async () => {
+        try {
+          const res = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}`, {
+            headers: {
+              'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ' 
+            }
+          });
+          
+          // Mapeamos la respuesta exacta para que coincida con las tarjetas y lógica de predicción
+          setCoin({
+            id: res.data.id,
+            name: res.data.name,
+            symbol: res.data.symbol,
+            image: res.data.image.large,
+            current_price: res.data.market_data.current_price.usd,
+            price_change_percentage_24h: res.data.market_data.price_change_percentage_24h || 0,
+            high_24h: res.data.market_data.high_24h.usd || res.data.market_data.current_price.usd,
+            low_24h: res.data.market_data.low_24h.usd || res.data.market_data.current_price.usd,
+            market_cap: res.data.market_data.market_cap.usd || 0
+          });
+        } catch (error) {
+          console.error("Error recuperando los datos base tras recargar F5", error);
+        }
+      };
+      fetchCoinBackup();
+    }
+  }, [id, coin]);
+
+
+
 
   // Petición a la API para el historial de precios (últimos 7 días)
    

@@ -94,7 +94,7 @@ const cryptoSlice = createSlice({
   
   initialState: { 
     list: [], 
-    portfolio: [], 
+     portfolio: JSON.parse(localStorage.getItem('portfolio')) || [],
     globalData: null, 
     status: 'idle', 
     error: null 
@@ -102,7 +102,11 @@ const cryptoSlice = createSlice({
   reducers: {
     addToPortfolio: (state, action) => {
       const exists = state.portfolio.find(coin => coin.id === action.payload.id);
-      if (!exists) state.portfolio.push(action.payload);
+       if (!exists) {
+        state.portfolio.push(action.payload);
+        // Guarda la lista actualizada de inmediato en el disco del navegador
+        localStorage.setItem('portfolio', JSON.stringify(state.portfolio)); 
+      }
     },
     removeFromPortfolio: (state, action) => {
       state.portfolio = state.portfolio.filter((coin) => coin.id !== action.payload);
