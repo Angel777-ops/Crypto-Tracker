@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './header/navbar';
 import Home from './pages/Home/home';
 import Details from './pages/Details/details';
@@ -8,7 +8,7 @@ import './app.css';
 
 const App = () => {
   return (
-    <Router basename="/Crypto-Tracker">
+    <Router>
 
       <Navbar />
       <Routes>
@@ -20,4 +20,5 @@ const App = () => {
     </Router>
   );
 }
+
 export default App;

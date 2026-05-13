@@ -24,21 +24,21 @@ const portfolio = useSelector((state) => state.crypto.portfolio);
 
 
 
-useEffect(() => {
-  // 1. Si el buscador está vacío, cargamos la página normal de inmediato y cancelamos cualquier timer
-  if (searchTerm.trim() === '') {
-    dispatch(fetchCryptos(page));
-    return; // Detiene la ejecución aquí
-  }
+  useEffect(() => {
+    // 1. Si el buscador está vacío, cargamos la página normal de inmediato y cancelamos cualquier timer
+    if (searchTerm.trim() === '') {
+      dispatch(fetchCryptos(page));
+      return; // Detiene la ejecución aquí
+    }
 
-  // 2. Si el usuario escribe algo, disparamos el temporizador para la búsqueda
-  const delayDebounceFn = setTimeout(() => {
-    dispatch(searchCryptos(searchTerm));
-  }, 500);
+    // 2. Si el usuario escribe algo, disparamos el temporizador para la búsqueda
+    const delayDebounceFn = setTimeout(() => {
+      dispatch(searchCryptos(searchTerm));
+    }, 500);
 
-  // 3. Limpieza del temporizador si el usuario sigue escribiendo o cambia de página
-  return () => clearTimeout(delayDebounceFn);
-}, [searchTerm, page, dispatch]); // Todas las dependencias son correctas y ESLint no fallará
+    // 3. Limpieza del temporizador si el usuario sigue escribiendo o cambia de página
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, page, dispatch]); // Todas las dependencias son correctas y ESLint no fallará
 
 
 
@@ -73,6 +73,7 @@ useEffect(() => {
 
 
   if (status === 'loading') return <p style={{textAlign: 'center', color: 'white'}}>Cargando criptos...</p>;
+  if (status === 'failed') return <p style={{textAlign: 'center', color: 'white'}}>Error al cargar criptos...</p>;
 
   const scrollToTop = (e) => {
   e.preventDefault(); 

@@ -72,7 +72,7 @@ export const searchCryptos = createAsyncThunk(
   current_price: pricesData[coin.id]?.usd ?? 0,
   price_change_percentage_24h: pricesData[coin.id]?.usd_24h_change ?? 0,
   
-  // INYECCIÓN: Agrega estas 3 líneas para blindar el componente Details de pantallas en blanco
+  //  blindar el componente Details de pantallas en blanco
   high_24h: pricesData[coin.id]?.usd ?? 0, 
   low_24h: pricesData[coin.id]?.usd ?? 0,  
   market_cap: 0                            
@@ -99,6 +99,8 @@ const cryptoSlice = createSlice({
     status: 'idle', 
     error: null 
   },
+
+  
   reducers: {
     addToPortfolio: (state, action) => {
       const exists = state.portfolio.find(coin => coin.id === action.payload.id);
@@ -115,6 +117,8 @@ const cryptoSlice = createSlice({
         state.portfolio = []; 
     },
   },
+
+
   extraReducers: (builder) => {
     builder
       // Casos para fetchCryptos
