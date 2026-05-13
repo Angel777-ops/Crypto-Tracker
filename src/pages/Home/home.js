@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCryptos, addToPortfolio, fetchGlobalData } from '../../Redux/cryptoSlice';
+import { fetchCryptos, addToPortfolio, fetchGlobalData, searchCryptos } from '../../Redux/cryptoSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import{
@@ -24,10 +24,32 @@ const portfolio = useSelector((state) => state.crypto.portfolio);
 
 
 
-  useEffect(() => {
+useEffect(() => {
+  // 1. Si el buscador está vacío, cargamos la página normal de inmediato y cancelamos cualquier timer
+  if (searchTerm.trim() === '') {
     dispatch(fetchCryptos(page));
+    return; // Detiene la ejecución aquí
+  }
+
+  // 2. Si el usuario escribe algo, disparamos el temporizador para la búsqueda
+  const delayDebounceFn = setTimeout(() => {
+    dispatch(searchCryptos(searchTerm));
+  }, 500);
+
+  // 3. Limpieza del temporizador si el usuario sigue escribiendo o cambia de página
+  return () => clearTimeout(delayDebounceFn);
+}, [searchTerm, page, dispatch]); // Todas las dependencias son correctas y ESLint no fallará
+
+
+
+
+
+
+
+  useEffect(() => {
+    
       dispatch(fetchGlobalData());
-  }, [dispatch, page]);
+  }, [dispatch]);
 
 
     
@@ -47,10 +69,8 @@ const portfolio = useSelector((state) => state.crypto.portfolio);
   ];
   const COLORS = ['#00ff88', '#ff4d4d'];
 
-  const filteredCoins = list.filter(coin => 
-    coin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+ 
+
 
   if (status === 'loading') return <p style={{textAlign: 'center', color: 'white'}}>Cargando criptos...</p>;
 
@@ -85,40 +105,51 @@ const portfolio = useSelector((state) => state.crypto.portfolio);
       {!searchTerm && list.length > 0 && (
         <DashboardGrid>
           <InfoCard>
-            <h5>🚀 Top Ganadoras 24h</h5>
-             <ViewMoreButton onClick={() => navigate('/top-ranking/gainers')}>
-                VER TODOS LOS GANADORES +
-             </ViewMoreButton>
-            {topGainers.map(coin => (
-              <MiniItem key={coin.id} to={`/coin/${coin.id}`}>
-                <div className="info">
-                  <img src={coin.image} width="18" alt="" />
-                  {coin.name}
-                </div>
-                <div className="stats">
-                  <div style={{color: '#00ff88'}}>▲ {coin.price_change_percentage_24h.toFixed(2)}%</div>
-                </div>
-              </MiniItem>
-            ))}
-          </InfoCard>
+  <h5>Top Ganadoras 24h</h5>
+  <ViewMoreButton onClick={() => navigate('/top-ranking/gainers')}>
+    VER TODOS LOS GANADORES +
+  </ViewMoreButton>
+  {topGainers.map(coin => (
+    <MiniItem key={coin.id} to={`/coin/${coin.id}`}>
+      <div className="info">
+        <img src={coin.image} width="18" alt="" />
+        {coin.name}
+      </div>
+      <div className="stats">
+        {/* Validación estricta para evitar errores con null */}
+        <div style={{ color: '#00ff88' }}>
+          ▲ {coin.price_change_percentage_24h !== null && coin.price_change_percentage_24h !== undefined 
+            ? `${coin.price_change_percentage_24h.toFixed(2)}%` 
+            : "0.00%"}
+        </div>
+      </div>
+    </MiniItem>
+  ))}
+</InfoCard>
 
-          <InfoCard>
-            <h5>📉 Top Perdedoras 24h</h5>
-            <ViewMoreButton onClick={() => navigate('/top-ranking/losers')}>
-              VER TODOS LOS PERDEDORES +
-            </ViewMoreButton>
-            {topLosers.map(coin => (
-              <MiniItem key={coin.id} to={`/coin/${coin.id}`}>
-                <div className="info">
-                  <img src={coin.image} width="18" alt="" />
-                  {coin.name}
-                </div>
-                <div className="stats">
-                  <div style={{color: '#ff4d4d'}}>▼ {coin.price_change_percentage_24h.toFixed(2)}%</div>
-                </div>
-              </MiniItem>
-            ))}
-          </InfoCard>
+<InfoCard>
+  <h5>Top Perdedoras 24h</h5>
+  <ViewMoreButton onClick={() => navigate('/top-ranking/losers')}>
+    VER TODOS LOS PERDEDORES +
+  </ViewMoreButton>
+  {topLosers.map(coin => (
+    <MiniItem key={coin.id} to={`/coin/${coin.id}`}>
+      <div className="info">
+        <img src={coin.image} width="18" alt="" />
+        {coin.name}
+      </div>
+      <div className="stats">
+        {/* Validación estricta para evitar errores con null */}
+        <div style={{ color: '#ff4d4d' }}>
+          ▼ {coin.price_change_percentage_24h !== null && coin.price_change_percentage_24h !== undefined 
+            ? `${coin.price_change_percentage_24h.toFixed(2)}%` 
+            : "0.00%"}
+        </div>
+      </div>
+    </MiniItem>
+  ))}
+</InfoCard>
+
 
           {/* 3. Tarjeta con Gráfico Circular */}
           <InfoCard>
@@ -162,30 +193,50 @@ const portfolio = useSelector((state) => state.crypto.portfolio);
       />
 
       <Container>
-        {filteredCoins.map((coin) => (
-          <Card key={coin.id}>
-            <img src={coin.image} alt={coin.name} width="50" />
-            <h3>{coin.name}</h3>
-            <p>${coin.current_price?.toLocaleString()}</p>
+  {/* 1. Usamos 'list' en lugar de 'filteredCoins' */}
+  {list && list.map((coin) => (
+    <Card key={coin.id}>
+      <img src={coin.image} alt={coin.name} width="50" />
+      <h3>{coin.name}</h3>
+      
+      {/* 2. Precio protegido: si es 0 o null, muestra el mensaje */}
+      <p>
+        {coin.current_price && coin.current_price > 0 
+          ? `$${coin.current_price.toLocaleString()}` 
+          : "Precio no disponible"}
+      </p>
 
-            <span className="percentage" style={{ color: coin.price_change_percentage_24h >= 0 ? '#00ff88' : '#ff4d4d' }}>
-                {coin.price_change_percentage_24h >= 0 ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
-            </span>
+      {/* 3. Porcentaje protegido contra ceros y nulos */}
+      <span 
+        className="percentage" 
+        style={{ 
+          color: (coin.price_change_percentage_24h || 0) >= 0 ? '#00ff88' : '#ff4d4d' 
+        }}
+      >
+        {coin.price_change_percentage_24h && coin.price_change_percentage_24h !== 0 ? (
+          <>
+            {coin.price_change_percentage_24h >= 0 ? '▲ ' : '▼ '} 
+            {Math.abs(coin.price_change_percentage_24h).toFixed(2)}%
+          </>
+        ) : (
+          "0.00%"
+        )}
+      </span>
 
-            <Link to={`/coin/${coin.id}`}>Ver detalles</Link>
+      <Link to={`/coin/${coin.id}`}>Ver detalles</Link>
 
+      {/* 4. Portafolio protegido con signo '?' */}
+      {portfolio?.find((item) => item.id === coin.id) ? (
+        <span style={{ color: 'red' }} className="already-added">¡Añadido!</span>
+      ) : (
+        <button onClick={() => dispatch(addToPortfolio(coin))}>
+          Añadir al Portafolio
+        </button>
+      )}
+    </Card>
+  ))}
+</Container>
 
-            {portfolio.find((item) => item.id === coin.id) ? (
-              <span style={{color: 'red'}} className="already-added">¡Añadido!</span>
-            ) : (
-              <button onClick={() => dispatch(addToPortfolio(coin))}>
-                Añadir al Portafolio
-              </button>
-            )}
-
-          </Card>
-        ))}
-      </Container>
 
 
 
