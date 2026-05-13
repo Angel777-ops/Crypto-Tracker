@@ -64,15 +64,19 @@ export const searchCryptos = createAsyncThunk(
       const pricesData = priceResponse.data || {};
 
       // 3. UNIFICACIÓN: Cruzamos los datos básicos de la búsqueda con sus precios reales de mercado
-      return limitedCoins.map(coin => ({
-        id: coin.id,
-        name: coin.name,
-        symbol: coin.symbol,
-        image: coin.large, 
-        // Si la API no tiene el precio de una moneda rara, cae a 0 de forma segura
-        current_price: pricesData[coin.id]?.usd ?? 0,
-        price_change_percentage_24h: pricesData[coin.id]?.usd_24h_change ?? 0
-      }));
+     return limitedCoins.map(coin => ({
+  id: coin.id,
+  name: coin.name,
+  symbol: coin.symbol,
+  image: coin.large, 
+  current_price: pricesData[coin.id]?.usd ?? 0,
+  price_change_percentage_24h: pricesData[coin.id]?.usd_24h_change ?? 0,
+  
+  // INYECCIÓN: Agrega estas 3 líneas para blindar el componente Details de pantallas en blanco
+  high_24h: pricesData[coin.id]?.usd ?? 0, 
+  low_24h: pricesData[coin.id]?.usd ?? 0,  
+  market_cap: 0                            
+}));
 
     } catch (error) {
       return rejectWithValue(error.response?.data || "Error en la búsqueda");

@@ -49,7 +49,8 @@ const Navbar = () => {
 
   return (
     <Nav>
-      <Logo to="/">CryptoTracker</Logo>
+      <Logo to="/" translate="no">CryptoTracker</Logo>
+
       <NavLinks>
         <Link to="/">Inicio</Link>
         <Link to="/portfolio">

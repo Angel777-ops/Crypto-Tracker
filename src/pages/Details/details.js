@@ -109,12 +109,12 @@ const predictionData = [
         </h3>
     </div>
     <div>
-        <p><strong>Máximo 24h:</strong></p>
-        <p>${coin.high_24h.toLocaleString()}</p>
+      <p><strong>Máximo 24h:</strong></p>
+      <p>${(coin.high_24h ?? coin.current_price ?? 0).toLocaleString()}</p>
     </div>
     <div>
         <p><strong>Mínimo 24h:</strong></p>
-        <p>${coin.low_24h.toLocaleString()}</p>
+        <p>${(coin.low_24h ?? coin.current_price ?? 0).toLocaleString()}</p>
     </div>
     </InfoGrid>
 
@@ -144,9 +144,10 @@ const predictionData = [
       </ChartWrapper>
 
       <div style={{ marginTop: '30px', borderTop: '1px solid #ddd', paddingTop: '20px' }}>
-        <Capitalization><strong>Capitalización de Mercado:</strong></Capitalization>
-        <Capitalization>${coin.market_cap.toLocaleString()}</Capitalization>
-      </div>
+    <Capitalization><strong>Capitalización de Mercado:</strong></Capitalization>
+    <Capitalization>${coin.market_cap ? coin.market_cap.toLocaleString() : "No disponible"}</Capitalization>
+    </div>
+
 
 
 
