@@ -69,9 +69,35 @@ const RemoveButton = styled.button`
 `;
 
 const Pagination = styled.div`
-  display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 40px;
-  button { padding: 8px 15px; cursor: pointer; border: 1px solid #ddd; background: white; border-radius: 4px; &.active { background: #e1ffcc; } }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 40px;
+  flex-wrap: wrap; /* Permite que los botones bajen si no caben en pantallas chicas */
+
+  button {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    transition: all 0.2s ease; /* Transición suave para clics */
+
+    &.active {
+      background: #e1ffcc;
+      font-weight: bold;
+    }
+    
+    /* 📱 ESTILOS PARA CELULARES */
+    @media (max-width: 480px) {
+      padding: 6px 10px; /* Botones ligeramente más pequeños */
+      font-size: 0.85rem;  /* Letra más chica para ahorrar espacio */
+      gap: 5px;            /* Reduce el espacio entre botones */
+    }
+  }
 `;
+
 
 const PerformanceWrapper = styled.div`
   display: flex;
