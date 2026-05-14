@@ -10,13 +10,11 @@ import {
 } from './styles';
 
 // --- 2. Componentes Arquitectónicos Modulares ---
-// --- 2. Componentes Arquitectónicos Modulares ---
 import PriceTicker from '../../components/PriceTicker';
 import Paginator from '../../components/Paginator';
 import GlobalStats from '../../components/GlobalStats';
 import SystemScanner from '../../components/SystemScanner';
 import BaseFooter from '../../components/BaseFooter';
-
 
 const COLORS = ['#00ff88', '#ff4d4d'];
 
@@ -24,17 +22,15 @@ const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // --- 3. selectores de Redux ---
-  const { list, status, globalData, portfolio, error } = useSelector((state) => state.crypto);
+  // --- 3. Selectores de Redux ---
+  const { list = [], status, globalData, portfolio = [], error } = useSelector((state) => state.crypto);
 
   // --- 4. Estados Locales ---
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
-  const [isMounted, setIsMounted] = useState(false); 
 
   // --- 5. Efectos (Llamadas a APIs externas) ---
   useEffect(() => {
-    setIsMounted(true);
     dispatch(fetchGlobalData());
   }, [dispatch]);
 
@@ -54,19 +50,19 @@ const Home = () => {
   // --- 6. Operaciones de Rendimiento Memorizadas (useMemo) ---
   const topGainers = useMemo(() => {
     return [...list]
-      .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+      .sort((a, b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0))
       .slice(0, 5);
   }, [list]);
 
   const topLosers = useMemo(() => {
     return [...list]
-      .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
+      .sort((a, b) => (a.price_change_percentage_24h || 0) - (b.price_change_percentage_24h || 0))
       .slice(0, 5);
   }, [list]);
 
   const pieData = useMemo(() => {
-    const up = list.filter(coin => coin.price_change_percentage_24h > 0).length;
-    const down = list.filter(coin => coin.price_change_percentage_24h <= 0).length;
+    const up = list.filter(coin => (coin.price_change_percentage_24h || 0) > 0).length;
+    const down = list.filter(coin => (coin.price_change_percentage_24h || 0) <= 0).length;
     return {
       data: [{ name: 'Alza', value: up }, { name: 'Baja', value: down }],
       up,
@@ -76,51 +72,18 @@ const Home = () => {
 
   // --- 7. Controladores de Interfaz ---
   const scrollToTop = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
- 
-
-// 2. Renderizado Condicional 1: Estado de Carga (Loading)
-  // Esto se activará tanto al paginar como al escribir en el buscador gracias al nuevo searchCryptos.pending
-  if (status === 'loading') {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#0f0e17' }}>
-        <p style={{ color: '#00ff88', fontSize: '1.2rem', fontWeight: 'bold' }}>
-          ⏳ Sincronizando con la red de CoinGecko...
-        </p>
-      </div>
-    );
-  }
-
-  // 3. Renderizado Condicional 2: Estado de Error (Failed)
-  // Si CoinGecko da un error de límite de peticiones (429) o de red, se muestra este bloque
+  // --- 8. Renderizados Condicionales de Error y Carga Estricta ---
   if (status === 'failed') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#0f0e17', gap: '15px' }}>
-        <p style={{ color: '#ff4d4d', fontSize: '1.2rem', fontWeight: 'bold' }}>
-          ❌ Error del Servidor
-        </p>
+        <p style={{ color: '#ff4d4d', fontSize: '1.2rem', fontWeight: 'bold' }}>❌ Error del Servidor</p>
         <p style={{ color: '#aaa', fontSize: '0.9rem' }}>{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          style={{ padding: '10px 20px', background: '#6c5ce7', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
+        <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', background: '#6c5ce7', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
           Reintentar conexión
-        </button>
-      </div>
-    );
-  }
-
-  // 4. Renderizado Condicional 3: Búsqueda sin Resultados
-  // Si el estado es exitoso pero la API devolvió una lista vacía en la búsqueda
-  if (status === 'succeeded' && list.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <p style={{ color: '#fff' }}>No se encontraron criptomonedas que coincidan con "{searchTerm}"</p>
-        <button onClick={() => setSearchTerm('')} style={{ color: '#00ff88', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-          Limpiar búsqueda
         </button>
       </div>
     );
@@ -131,8 +94,10 @@ const Home = () => {
       {/* Banner Superior Infinito */}
       <PriceTicker list={list} />
 
-      {/* Dashboard Ejecutivo (Desaparece en modo búsqueda) */}
-      {!searchTerm && list.length > 0 && (
+     
+
+      {/* Dashboard Ejecutivo (Oculto en búsquedas activas) */}
+      {!searchTerm && list.length > 0 && status !== 'loading' && (
         <DashboardGrid>
           {/* Panel Ganadoras */}
           <InfoCard>
@@ -172,29 +137,19 @@ const Home = () => {
             ))}
           </InfoCard>
 
-          
           {/* Panel Métricas de Sentimiento */}
           <InfoCard>
             <h5>📊 Sentimiento del Mercado</h5>
-            {isMounted && (
-              <ResponsiveContainer width="100%" height={120} minHeight={120}>
-                <PieChart>
-                  <Pie
-                    data={pieData.data}
-                    innerRadius={30}
-                    outerRadius={50}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#484848', border: 'none' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-            
+            <ResponsiveContainer width="100%" height={120}>
+              <PieChart>
+                <Pie data={pieData.data} innerRadius={30} outerRadius={50} paddingAngle={5} dataKey="value">
+                  {pieData.data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#484848', border: 'none' }} />
+              </PieChart>
+            </ResponsiveContainer>
             <div style={{ textAlign: 'center', marginTop: '5px' }}>
               <strong style={{ color: pieData.up >= pieData.down ? '#00ff88' : '#ff4d4d' }}>
                 {pieData.up >= pieData.down ? 'MERCADO AL ALZA' : 'MERCADO A LA BAJA'}
@@ -204,21 +159,38 @@ const Home = () => {
               </p>
             </div>
           </InfoCard>
-
         </DashboardGrid>
       )}
 
-      {/* Control de Filtrado */}
+       {/* Control de Filtrado */}
       <SearchInput 
         type="text" 
         placeholder="Buscar criptomoneda..." 
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        $isSearching={!!searchTerm}
       />
+
+      {/* Indicador de carga sutil e informativo */}
+      {status === 'loading' && (
+        <p style={{ color: '#00ff88', textAlign: 'center', fontWeight: 'bold', margin: '20px 0' }}>
+          ⏳ Sincronizando con la red de CoinGecko...
+        </p>
+      )}
+
+      {/* Mensaje de Búsqueda sin Resultados */}
+      {status === 'succeeded' && list.length === 0 && (
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+          <p style={{ color: '#fff' }}>No se encontraron criptomonedas que coincidan con "{searchTerm}"</p>
+          <button onClick={() => setSearchTerm('')} style={{ color: '#00ff88', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            Limpiar búsqueda
+          </button>
+        </div>
+      )}
 
       {/* Rejilla Comercial de Monedas */}
       <Container>
-        {list?.map((coin) => (
+        {list.map((coin) => (
           <Card key={coin.id}>
             <img src={coin.image} alt={coin.name} width="50" />
             <h3>{coin.name}</h3>
@@ -237,8 +209,8 @@ const Home = () => {
 
             <Link to={`/coin/${coin.id}`}>Ver detalles</Link>
 
-            {portfolio?.some((item) => item.id === coin.id) ? (
-              <span style={{ color: 'red' }} className="already-added">¡Añadido!</span>
+            {portfolio.some((item) => item.id === coin.id) ? (
+              <span style={{ color: '#ff4d4d', fontWeight: 'bold' }} className="already-added">¡Añadido!</span>
             ) : (
               <button onClick={() => dispatch(addToPortfolio(coin))}>Añadir al Portafolio</button>
             )}
@@ -247,12 +219,10 @@ const Home = () => {
       </Container>
 
       {/* Inyecciones Arquitectónicas Modulares de Control e Infraestructura */}
-      <Paginator page={page} setPage={setPage} totalPages={300} />
+      {!searchTerm && <Paginator page={page} setPage={setPage} totalPages={300} />}
 
       <GlobalStats globalData={globalData} />
-
       <SystemScanner />
-
       <BaseFooter scrollToTop={scrollToTop} />
     </MainWrapper>
   );

@@ -67,6 +67,8 @@ const SearchInput = styled.input`
   display: block;
   margin-left: auto;
   margin-right: auto;
+
+   margin-top: ${props => props.$isSearching ? '80px' : '20px'}; 
 `;
 
 const Container = styled.div`
