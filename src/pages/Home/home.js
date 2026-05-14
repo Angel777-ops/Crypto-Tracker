@@ -25,7 +25,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   // --- 3. selectores de Redux ---
-  const { list, status, globalData, portfolio } = useSelector((state) => state.crypto);
+  const { list, status, globalData, portfolio, error } = useSelector((state) => state.crypto);
 
   // --- 4. Estados Locales ---
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,9 +80,51 @@ const Home = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // --- 8. Estados de Carga e Interrupciones Técnicas ---
-  if (status === 'loading') return <p style={{ textAlign: 'center', color: 'white', marginTop: '40px' }}>Cargando criptos...</p>;
-  if (status === 'failed') return <p style={{ textAlign: 'center', color: 'white', marginTop: '40px' }}>Error al cargar criptos...</p>;
+ 
+
+// 2. Renderizado Condicional 1: Estado de Carga (Loading)
+  // Esto se activará tanto al paginar como al escribir en el buscador gracias al nuevo searchCryptos.pending
+  if (status === 'loading') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#0f0e17' }}>
+        <p style={{ color: '#00ff88', fontSize: '1.2rem', fontWeight: 'bold' }}>
+          ⏳ Sincronizando con la red de CoinGecko...
+        </p>
+      </div>
+    );
+  }
+
+  // 3. Renderizado Condicional 2: Estado de Error (Failed)
+  // Si CoinGecko da un error de límite de peticiones (429) o de red, se muestra este bloque
+  if (status === 'failed') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#0f0e17', gap: '15px' }}>
+        <p style={{ color: '#ff4d4d', fontSize: '1.2rem', fontWeight: 'bold' }}>
+          ❌ Error del Servidor
+        </p>
+        <p style={{ color: '#aaa', fontSize: '0.9rem' }}>{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          style={{ padding: '10px 20px', background: '#6c5ce7', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        >
+          Reintentar conexión
+        </button>
+      </div>
+    );
+  }
+
+  // 4. Renderizado Condicional 3: Búsqueda sin Resultados
+  // Si el estado es exitoso pero la API devolvió una lista vacía en la búsqueda
+  if (status === 'succeeded' && list.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '50px' }}>
+        <p style={{ color: '#fff' }}>No se encontraron criptomonedas que coincidan con "{searchTerm}"</p>
+        <button onClick={() => setSearchTerm('')} style={{ color: '#00ff88', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+          Limpiar búsqueda
+        </button>
+      </div>
+    );
+  }
 
   return (
     <MainWrapper>

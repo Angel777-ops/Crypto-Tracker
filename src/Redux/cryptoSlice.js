@@ -99,11 +99,11 @@ const cryptoSlice = createSlice({
     },
     removeFromPortfolio: (state, action) => {
       state.portfolio = state.portfolio.filter((coin) => coin.id !== action.payload);
-      updateLocalStorage(state.portfolio); // ✅ Solucionado: Persistencia al eliminar
+      updateLocalStorage(state.portfolio); 
     },
     clearPortfolio: (state) => {
       state.portfolio = []; 
-      updateLocalStorage(state.portfolio); // ✅ Solucionado: Persistencia al vaciar
+      updateLocalStorage(state.portfolio); 
     },
   },
   extraReducers: (builder) => {
@@ -119,12 +119,12 @@ const cryptoSlice = createSlice({
       })
       .addCase(fetchCryptos.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || action.error.message; // ✅ Solucionado: Captura del payload del error
+        state.error = action.payload || action.error.message; 
       })
 
       // Casos de Carga: Búsqueda Semántica Dinámica
       .addCase(searchCryptos.pending, (state) => {
-        state.status = 'loading'; // ✅ Solucionado: Muestra indicador de carga al buscar
+        state.status = 'loading'; 
         state.error = null;
       })
       .addCase(searchCryptos.fulfilled, (state, action) => {
