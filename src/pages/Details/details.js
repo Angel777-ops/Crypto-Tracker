@@ -170,8 +170,15 @@ const Details = () => {
         {/* Capitalización de Mercado */}
         <div style={{ marginTop: '30px', borderTop: '1px solid #444', paddingTop: '20px' }}>
           <Capitalization><strong>Capitalización de Mercado:</strong></Capitalization>
-          <Capitalization>${coin.market_cap ? coin.market_cap.toLocaleString() : "No disponible"}</Capitalization>
+          <Capitalization>
+            {coin.market_cap && coin.market_cap > 0
+              ? `$${coin.market_cap.toLocaleString()} USD`
+              : coin.market_data?.market_cap?.usd && coin.market_data.market_cap.usd > 0
+                ? `$${coin.market_data.market_cap.usd.toLocaleString()} USD`
+                : "No disponible"}
+          </Capitalization>
         </div>
+
 
         {/* Componente Modular: Motor de Análisis Predictivo */}
         {predictionMetrics && (

@@ -223,16 +223,24 @@ const Home = () => {
               ) : "0.00%"}
             </span>
 
-            <Link to={`/coin/${coin.id}`}>Ver detalles</Link>
+           <Link to={`/coin/${coin.id}`}>Ver detalles</Link>
+
             {portfolioIds.has(coin.id) ? (
               <span style={{ color: '#ff4d4d', fontWeight: 'bold' }} className="already-added">
                 ¡Añadido!
               </span>
             ) : (
-              <button onClick={() => dispatch(addToPortfolio(coin))}>
+              <button 
+                onClick={() => dispatch(addToPortfolio({
+                  ...coin,
+                  market_cap: coin.market_cap || 0,
+                  high_24h: coin.high_24h || coin.current_price
+                }))}
+              >
                 Añadir al Portafolio
               </button>
             )}
+
           </Card>
         ))}
       </Container>
