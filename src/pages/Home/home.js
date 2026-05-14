@@ -142,10 +142,16 @@ const Home = () => {
             <h5>📊 Sentimiento del Mercado</h5>
             <ResponsiveContainer width="100%" height={120}>
               <PieChart>
-                <Pie data={pieData.data} innerRadius={30} outerRadius={50} paddingAngle={5} dataKey="value">
-                  {pieData.data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
+                <Pie data={pieData.data} 
+                innerRadius={30}
+                outerRadius={50}
+                paddingAngle={5}
+                dataKey="value"
+                stroke="#0f0e17">
+                
+                {pieData.data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#484848', border: 'none' }} />
               </PieChart>
