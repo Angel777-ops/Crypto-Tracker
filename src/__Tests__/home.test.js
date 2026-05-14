@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import configureStore from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
-import Home from '../pages/Home/home'; // Ajusta la ruta según tu estructura
+import Home from '../pages/Home/Home'; // Ajusta la ruta según tu estructura
 
 // 1. Mocks de Navegación y Scroll
 const mockNavigate = jest.fn();

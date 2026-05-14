@@ -1,9 +1,9 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './pages/header/navbar';
-import Home from './pages/Home/home';
-import Details from './pages/Details/details';
-import Portfolio from './pages/Portfolio/portfolio';
-import Ranking from './pages/Ranking/ranking';
+import Navbar from './pages/Header/Header';
+import Home from './pages/Home/Home';
+import Details from './pages/Details/Details';
+import Portfolio from './pages/Portfolio/Portfolio';
+import Ranking from './pages/Ranking/Ranking';
 import './app.css';
 
 const App = () => {
