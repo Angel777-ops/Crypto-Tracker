@@ -1,81 +1,86 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useEffect, useState, useMemo } from 'react'; 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,  Cell } from 'recharts';
-import {  Background, DetailContainer, ChartWrapper, BackButton, InfoGrid, Capitalization, PredictionModule 
-} from './styles';
+// --- 1. Componentes de Estilos ---
+import { Background, DetailContainer, BackButton, InfoGrid, Capitalization } from './styles';
 
+// --- 2. Componentes Arquitectónicos Modulares (Rutas con 2 niveles) ---
+import CoinTrendChart from '../../components/CoinTrendChart';
+import PricePrediction from '../../components/PricePrediction';
 
+const API_HEADERS = {
+  headers: { 'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ' }
+};
 
 const Details = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [chartData, setChartData] = useState([]); 
 
-  // 1. Intentamos leer de Redux la moneda seleccionada
+  // --- 3. Sincronización del Estado Global de Redux ---
   const reduxCoin = useSelector((state) => 
     state.crypto.list.find((item) => item.id === id)
   );
-
-  // 2. Estado local dinámico: Toma el valor de Redux si existe, sino inicia en null
   const [coin, setCoin] = useState(reduxCoin || null);
+   const [isLoading, setIsLoading] = useState(!reduxCoin); // Si no está en Redux, se activa la carga para F5
 
-  // 3. NUEVO EFECTO: Si se presiona F5 y no hay datos en Redux, los descarga de la API
-  useEffect(() => {
-    if (!coin && id) {
-      const fetchCoinBackup = async () => {
-        try {
-          const res = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}`, {
-            headers: {
-              'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ' 
-            }
-          });
-          
-          // Mapeamos la respuesta exacta para que coincida con las tarjetas y lógica de predicción
-          setCoin({
-            id: res.data.id,
-            name: res.data.name,
-            symbol: res.data.symbol,
-            image: res.data.image.large,
-            current_price: res.data.market_data.current_price.usd,
-            price_change_percentage_24h: res.data.market_data.price_change_percentage_24h || 0,
-            high_24h: res.data.market_data.high_24h.usd || res.data.market_data.current_price.usd,
-            low_24h: res.data.market_data.low_24h.usd || res.data.market_data.current_price.usd,
-            market_cap: res.data.market_data.market_cap.usd || 0
-          });
-        } catch (error) {
-          console.error("Error recuperando los datos base tras recargar F5", error);
-        }
-      };
+  // --- 4. Efecto de Respaldo Técnico (F5 / Recarga Manual) ---
+   useEffect(() => {
+    const fetchCoinBackup = async () => {
+      // Si los datos ya existen en Redux, los asignamos y apagamos la carga inmediatamente
+      if (reduxCoin) {
+        setCoin(reduxCoin);
+        setIsLoading(false);
+        return;
+      }
+
+      // Si no existen (F5), los descargamos de la API de forma segura
+      try {
+        setIsLoading(true);
+        const res = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}`, API_HEADERS);
+        setCoin({
+          id: res.data.id,
+          name: res.data.name,
+          symbol: res.data.symbol,
+          image: res.data.image.large,
+          current_price: res.data.market_data.current_price.usd,
+          price_change_percentage_24h: res.data.market_data.price_change_percentage_24h || 0,
+          high_24h: res.data.market_data.high_24h.usd || res.data.market_data.current_price.usd,
+          low_24h: res.data.market_data.low_24h.usd || res.data.market_data.current_price.usd,
+          market_cap: res.data.market_data.market_cap.usd || 0
+        });
+      } catch (error) {
+        console.error("Error recuperando los datos base tras recargar F5", error);
+      } finally {
+        setIsLoading(false); // Apaga el estado de carga pase lo que pase
+      }
+    };
+
+    if (id) {
       fetchCoinBackup();
     }
-  }, [id, coin]);
+  }, [id, reduxCoin]); // ✅ Agregada la dependencia que pedía ESLint
 
-
-
-
-  // Petición a la API para el historial de precios (últimos 7 días)
-   
+  // --- 5. Efecto de Carga de Historial para el Gráfico ---
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         const response = await axios.get(
-           `https://api.coingecko.com/api/v3/coins/${id}/market_chart`, 
+          `https://api.coingecko.com/api/v3/coins/${id}/market_chart`, 
           { 
-            params: { 
-              vs_currency: 'usd', 
-              days: '7', 
-              interval: 'daily' 
-            },
+            params: { vs_currency: 'usd', days: '7', interval: 'daily' },
+
+
             headers: {
-              'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ' 
+            'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ'
             }
-          }
+            
+          },
+          
         );
         
-        // Formateamos los datos para Recharts
         const formattedData = response.data.prices.map(price => ({
           date: new Date(price[0]).toLocaleDateString(),
           price: price[1]
@@ -88,175 +93,92 @@ const Details = () => {
     if (id) fetchHistory();
   }, [id]);
 
-  if (!coin) return <p>Moneda no encontrada</p>;
+  // --- 6. Análisis de Datos Financieros Memorizado (useMemo) ---
+  const predictionMetrics = useMemo(() => {
+    if (!coin) return null;
 
+    const change = (coin.price_change_percentage_24h || 0) / 100;
+    const currentPrice = coin.current_price;
+    const isBullish = change >= 0;
+    const volatilityMultiplier = 1.2;
+    const adjustedChange = Math.abs(change) * volatilityMultiplier;
 
+    let predictedMax, predictedMin;
 
-  
-  
-  // Calculamos el valor estimado en 24h
- // --- Lógica de Predicción ---
-const change = (coin.price_change_percentage_24h || 0) / 100;
-const currentPrice = coin.current_price;
-const isBullish = change >= 0;
+    if (isBullish) {
+      predictedMax = currentPrice * (1 + (adjustedChange * 1.1));
+      predictedMin = currentPrice * (1 - (adjustedChange * 0.9));
+    } else {
+      predictedMax = currentPrice * (1 + (adjustedChange * 0.9));
+      predictedMin = currentPrice * (1 - (adjustedChange * 1.1));
+    }
 
-// Configuración de agresividad
-const volatilityMultiplier = 1.2;
-const adjustedChange = Math.abs(change) * volatilityMultiplier;
+    const predictedPrice = currentPrice * (1 + change);
 
-let predictedMax, predictedMin;
+    return {
+      isBullish,
+      volatilityMultiplier,
+      predictedMin,
+      predictedPrice,
+      predictedMax,
+      predictionData: [
+        { name: 'Mín. Proyectado', valor: predictedMin },
+        { name: 'Precio Actual', valor: currentPrice },
+        { name: 'Máx. Proyectado', valor: predictedMax }
+      ]
+    };
+  }, [coin]);
 
-if (isBullish) {
-    predictedMax = currentPrice * (1 + (adjustedChange * 1.1));
-    predictedMin = currentPrice * (1 - (adjustedChange * 0.9));
-} else {
-    predictedMax = currentPrice * (1 + (adjustedChange * 0.9));
-    predictedMin = currentPrice * (1 - (adjustedChange * 1.1));
-}
-
-const predictedPrice = currentPrice * (1 + change);
-
-// Datos para el BarChart (Mínimo, Actual, Máximo)
-const predictionData = [
-  { name: 'Mín. Proyectado', valor: predictedMin },
-  { name: 'Precio Actual', valor: currentPrice },
-  { name: 'Máx. Proyectado', valor: predictedMax },
-];
-
-//________________________________________________________________
+  // --- 7. Validación de Renderizado Seguro ---
+  if (isLoading) {
+    return <p style={{ textAlign: 'center', color: 'white', marginTop: '40px' }}>Sincronizando datos con la red...</p>;
+  }
+  if (!coin) return <p style={{ textAlign: 'center', color: 'white', marginTop: '40px' }}>Moneda no encontrada</p>;
 
   return (
     <Background>
-    <DetailContainer>
-      <BackButton onClick={() => navigate(-1)}>← Volver</BackButton>
-      
-      <img src={coin.image} alt={coin.name} width="80" />
-      <h1>{coin.name} ({coin.symbol.toUpperCase()})</h1>
-      
-      
+      <DetailContainer>
+        <BackButton onClick={() => navigate(-1)}>← Volver</BackButton>
+        
+        <img src={coin.image} alt={coin.name} width="80" />
+        <h1>{coin.name} ({coin.symbol.toUpperCase()})</h1>
+        
+        {/* Rejilla de Información de Mercado */}
+        <InfoGrid>
+          <div>
+            <p><strong>Precio Actual:</strong></p>
+            <h3>${coin.current_price.toLocaleString()} USD</h3>
+          </div>
+          <div>
+            <p><strong>Cambio 24h:</strong></p>
+            <h3 style={{ color: coin.price_change_percentage_24h > 0 ? '#00ff88' : '#ff4d4d' }}>
+              {coin.price_change_percentage_24h.toFixed(2)}%
+            </h3>
+          </div>
+          <div>
+            <p><strong>Máximo 24h:</strong></p>
+            <p>${(coin.high_24h ?? coin.current_price ?? 0).toLocaleString()}</p>
+          </div>
+          <div>
+            <p><strong>Mínimo 24h:</strong></p>
+            <p>${(coin.low_24h ?? coin.current_price ?? 0).toLocaleString()}</p>
+          </div>
+        </InfoGrid>
 
-    <InfoGrid>
-    <div>
-        <p><strong>Precio Actual:</strong></p>
-        <h3>${coin.current_price.toLocaleString()} USD</h3>
-    </div>
-    <div>
-        <p><strong>Cambio 24h:</strong></p>
-        <h3 style={{ color: coin.price_change_percentage_24h > 0 ? 'green' : 'red' }}>
-        {coin.price_change_percentage_24h.toFixed(2)}%
-        </h3>
-    </div>
-    <div>
-      <p><strong>Máximo 24h:</strong></p>
-      <p>${(coin.high_24h ?? coin.current_price ?? 0).toLocaleString()}</p>
-    </div>
-    <div>
-        <p><strong>Mínimo 24h:</strong></p>
-        <p>${(coin.low_24h ?? coin.current_price ?? 0).toLocaleString()}</p>
-    </div>
-    </InfoGrid>
+        {/* Componente Modular: Gráfico Histórico */}
+        <CoinTrendChart chartData={chartData} isUp={coin.price_change_percentage_24h > 0} />
 
+        {/* Capitalización de Mercado */}
+        <div style={{ marginTop: '30px', borderTop: '1px solid #444', paddingTop: '20px' }}>
+          <Capitalization><strong>Capitalización de Mercado:</strong></Capitalization>
+          <Capitalization>${coin.market_cap ? coin.market_cap.toLocaleString() : "No disponible"}</Capitalization>
+        </div>
 
-
-
-
-      {/* --- NUEVO: Gráfico --- */}
-      <h3>Tendencia últimos 7 días</h3>
-      <ChartWrapper>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" hide /> 
-            <YAxis domain={['auto', 'auto']} hide />
-            <Tooltip />
-            <Line 
-                type="monotone" 
-                dataKey="price" 
-                stroke={coin.price_change_percentage_24h > 0 ? "#4caf50" : "#f44336"} // Verde si sube, rojo si baja
-                strokeWidth={3} 
-                dot={false} 
-            />
-
-          </LineChart>
-        </ResponsiveContainer>
-      </ChartWrapper>
-
-      <div style={{ marginTop: '30px', borderTop: '1px solid #ddd', paddingTop: '20px' }}>
-    <Capitalization><strong>Capitalización de Mercado:</strong></Capitalization>
-    <Capitalization>${coin.market_cap ? coin.market_cap.toLocaleString() : "No disponible"}</Capitalization>
-    </div>
-
-
-
-
-    
-
-    
-    {/* ---  MÓDULO DE PREDICCIÓN --- */}
-<PredictionModule $isBullish={isBullish}>
-  <h4>🔮 Análisis de Proyección (Próximas 24h)</h4>
-  <p style={{ color: '#ccc', fontSize: '0.8rem', marginBottom: '15px' }}>
-    Basado en volatilidad ajustada ({volatilityMultiplier}x)
-  </p>
-
-   <div>
-        <p><strong>Precio Actual:</strong></p>
-        <h3>${coin.current_price.toLocaleString()} USD</h3>
-    </div>
-
-  <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '20px' }}>
-    <div>
-      <span style={{ fontSize: '0.8rem', color: '#aaa' }}>Mínimo Est.</span>
-      <div style={{ fontSize: '1.1rem', color: '#ff4d4d' }}>
-        ${predictedMin.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-      </div>
-    </div>
-    
-    <div style={{ textAlign: 'center' }}>
-      <span style={{ fontSize: '0.8rem', color: '#aaa' }}>Promedio Esp.</span>
-      <div className="prediction-value" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-        ${predictedPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-      </div>
-    </div>
-
-    <div>
-      <span style={{ fontSize: '0.8rem', color: '#aaa' }}>Máximo Est.</span>
-      <div style={{ fontSize: '1.1rem', color: '#00ff88' }}>
-        ${predictedMax.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-      </div>
-    </div>
-  </div>
-
-  <p style={{ color: isBullish ? '#00ff88' : '#ff4d4d', fontWeight: 'bold', textAlign: 'center' }}>
-    {isBullish ? '▲ EXPECTATIVA ALCISTA' : '▼ EXPECTATIVA BAJISTA'}
-  </p>
-
-  {/* Gráfico de Barras Proyectado */}
-  <div style={{ width: '100%', height: '150px', marginTop: '20px' }}>
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={predictionData}>
-        <XAxis dataKey="name" stroke="#a29bfe" fontSize={10} tickLine={false} axisLine={false} />
-        <YAxis hide domain={['auto', 'auto']} />
-        <Tooltip 
-          contentStyle={{ backgroundColor: '#1e1b29', border: 'none', borderRadius: '8px', color: '#fff' }}
-          formatter={(value) => `$${value.toLocaleString()}`}
-          cursor={{fill: 'rgba(255,255,255,0.05)'}}
-          itemStyle={{ color: '#a29bfe' }} 
-               
-        />
-        <Bar dataKey="valor" radius={[5, 5, 0, 0]} barSize={50}>
-          {predictionData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={index === 0 ? '#ff4d4d' : index === 1 ? '#a29bfe' : '#00ff88'} />
-          ))}
-        </Bar>
-      </BarChart >
-    </ResponsiveContainer>
-  </div>
-</PredictionModule>
-
-
-
-    </DetailContainer>
+        {/* Componente Modular: Motor de Análisis Predictivo */}
+        {predictionMetrics && (
+          <PricePrediction coin={coin} predictionMetrics={predictionMetrics} />
+        )}
+      </DetailContainer>
     </Background>
   );
 };
