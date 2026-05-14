@@ -72,7 +72,7 @@ const Details = () => {
           `${BASE_URL}/coins/${id}/market_chart`, 
           { 
             params: { vs_currency: 'usd', days: '7', interval: 'daily' },
-            ...API_HEADERS // ✅ SOLUCONADO: Usamos la constante limpia centralizada
+            ...API_HEADERS 
           }
         );
         
@@ -86,7 +86,7 @@ const Details = () => {
       }
     };
 
-    // ✅ SOLUCIONADO: No se pide la gráfica hasta que 'coin' esté listo en memoria (Evita el F5 crash/parpadeo)
+    
     if (id && coin) {
       fetchHistory();
     }
