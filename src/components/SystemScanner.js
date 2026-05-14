@@ -13,7 +13,7 @@ const SystemScanner = () => {
         <ScannerText>Escaneando Bloques de Red... [OK]</ScannerText>
         <BlockGrid>
           {[...Array(15)].map((_, i) => (
-            <Block key={i} delay={i * 0.2} />
+            <Block key={i} $delay={i * 0.2} />
           ))}
         </BlockGrid>
       </ScannerWrapper>

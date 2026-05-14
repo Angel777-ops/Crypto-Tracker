@@ -61,7 +61,7 @@ const Details = () => {
     if (id) {
       fetchCoinBackup();
     }
-  }, [id, reduxCoin]); // ✅ Agregada la dependencia que pedía ESLint
+  }, [id, reduxCoin]);
 
   // --- 5. Efecto de Carga de Historial para el Gráfico ---
   useEffect(() => {

@@ -2,18 +2,7 @@
 import { useParams, useNavigate } from 'react-router-dom'; 
 import { useSelector } from 'react-redux';
 import React, { useState } from 'react'; 
-import { 
-  Background, 
-  RankingContainer, 
-  Title, 
-  ListWrapper, 
-  CoinRow, 
-  CoinInfo, 
-  Percentage,
-  BackButton,
-  PageButton,
-  PaginationContainer
-} from './styles';
+import { Background, RankingContainer, Title, ListWrapper, CoinRow, CoinInfo, Percentage,BackButton,PageButton,PaginationContainer} from './styles';
 
 const Ranking = () => {
   const { type } = useParams();

@@ -359,7 +359,7 @@ const Block = styled.div`
   border: 1px solid #6c5ce7;
   border-radius: 3px;
   animation: scanBlock 3s infinite ease-in-out;
-  animation-delay: ${props => props.delay}s;
+  animation-delay: ${props => props.$delay}s;
 
   @keyframes scanBlock {
     0%, 100% { background: #150d20; border-color: #332a44; box-shadow: none; }
