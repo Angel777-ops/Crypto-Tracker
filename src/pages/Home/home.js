@@ -70,6 +70,11 @@ const Home = () => {
     };
   }, [list]);
 
+
+  const portfolioIds = useMemo(() => {
+      return new Set(portfolio.map(item => item.id));
+    }, [portfolio]);
+
   // --- 7. Controladores de Interfaz ---
   const scrollToTop = (e) => {
     if (e) e.preventDefault();
@@ -88,6 +93,11 @@ const Home = () => {
       </div>
     );
   }
+
+
+  
+    
+
 
   return (
     <MainWrapper>
@@ -214,11 +224,14 @@ const Home = () => {
             </span>
 
             <Link to={`/coin/${coin.id}`}>Ver detalles</Link>
-
-            {portfolio.some((item) => item.id === coin.id) ? (
-              <span style={{ color: '#ff4d4d', fontWeight: 'bold' }} className="already-added">¡Añadido!</span>
+            {portfolioIds.has(coin.id) ? (
+              <span style={{ color: '#ff4d4d', fontWeight: 'bold' }} className="already-added">
+                ¡Añadido!
+              </span>
             ) : (
-              <button onClick={() => dispatch(addToPortfolio(coin))}>Añadir al Portafolio</button>
+              <button onClick={() => dispatch(addToPortfolio(coin))}>
+                Añadir al Portafolio
+              </button>
             )}
           </Card>
         ))}
