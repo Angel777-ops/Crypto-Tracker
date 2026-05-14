@@ -131,8 +131,8 @@ const Home = () => {
           {/* Panel Métricas de Sentimiento */}
           <InfoCard>
             <h5>📊 Sentimiento del Mercado</h5>
-            <div style={{ width: '100%', height: 120 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 120, }}>
+              <ResponsiveContainer width="100%" height="100%" debounce={100}>
                 <PieChart>
                   <Pie
                     data={pieData.data}
