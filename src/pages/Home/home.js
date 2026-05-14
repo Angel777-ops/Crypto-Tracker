@@ -30,9 +30,11 @@ const Home = () => {
   // --- 4. Estados Locales ---
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [isMounted, setIsMounted] = useState(false); 
 
   // --- 5. Efectos (Llamadas a APIs externas) ---
   useEffect(() => {
+    setIsMounted(true);
     dispatch(fetchGlobalData());
   }, [dispatch]);
 
@@ -128,11 +130,12 @@ const Home = () => {
             ))}
           </InfoCard>
 
+          
           {/* Panel Métricas de Sentimiento */}
           <InfoCard>
             <h5>📊 Sentimiento del Mercado</h5>
-            <div style={{ width: '100%', height: 120, }}>
-              <ResponsiveContainer width="100%" height="100%" debounce={100}>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height={120} minHeight={120}>
                 <PieChart>
                   <Pie
                     data={pieData.data}
@@ -148,7 +151,8 @@ const Home = () => {
                   <Tooltip contentStyle={{ backgroundColor: '#484848', border: 'none' }} />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+            )}
+            
             <div style={{ textAlign: 'center', marginTop: '5px' }}>
               <strong style={{ color: pieData.up >= pieData.down ? '#00ff88' : '#ff4d4d' }}>
                 {pieData.up >= pieData.down ? 'MERCADO AL ALZA' : 'MERCADO A LA BAJA'}
@@ -158,6 +162,7 @@ const Home = () => {
               </p>
             </div>
           </InfoCard>
+
         </DashboardGrid>
       )}
 
