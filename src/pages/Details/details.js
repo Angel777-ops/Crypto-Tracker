@@ -10,6 +10,7 @@ import { Background, DetailContainer, BackButton, InfoGrid, Capitalization } fro
 import CoinTrendChart from '../../components/CoinTrendChart';
 import PricePrediction from '../../components/PricePrediction';
 
+const BASE_URL = "https://api.coingecko.com/api/v3";
 const API_HEADERS = {
   headers: { 'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ' }
 };
@@ -17,29 +18,29 @@ const API_HEADERS = {
 const Details = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [chartData, setChartData] = useState([]); 
-
+  
   // --- 3. Sincronización del Estado Global de Redux ---
   const reduxCoin = useSelector((state) => 
     state.crypto.list.find((item) => item.id === id)
   );
-  const [coin, setCoin] = useState(reduxCoin || null);
-   const [isLoading, setIsLoading] = useState(!reduxCoin); // Si no está en Redux, se activa la carga para F5
 
-  // --- 4. Efecto de Respaldo Técnico (F5 / Recarga Manual) ---
-   useEffect(() => {
+  // --- 4. Estados Locales con Control de Carga ---
+  const [chartData, setChartData] = useState([]); 
+  const [coin, setCoin] = useState(reduxCoin || null);
+  const [isLoading, setIsLoading] = useState(!reduxCoin);
+
+  // --- 5. Efecto de Respaldo Técnico (F5 / Recarga Manual) ---
+  useEffect(() => {
     const fetchCoinBackup = async () => {
-      // Si los datos ya existen en Redux, los asignamos y apagamos la carga inmediatamente
       if (reduxCoin) {
         setCoin(reduxCoin);
         setIsLoading(false);
         return;
       }
 
-      // Si no existen (F5), los descargamos de la API de forma segura
       try {
         setIsLoading(true);
-        const res = await axios.get(`https://api.coingecko.com/api/v3/coins/${id}`, API_HEADERS);
+        const res = await axios.get(`${BASE_URL}/coins/${id}`, API_HEADERS);
         setCoin({
           id: res.data.id,
           name: res.data.name,
@@ -54,7 +55,7 @@ const Details = () => {
       } catch (error) {
         console.error("Error recuperando los datos base tras recargar F5", error);
       } finally {
-        setIsLoading(false); // Apaga el estado de carga pase lo que pase
+        setIsLoading(false);
       }
     };
 
@@ -63,22 +64,16 @@ const Details = () => {
     }
   }, [id, reduxCoin]);
 
-  // --- 5. Efecto de Carga de Historial para el Gráfico ---
+  // --- 6. Efecto de Carga de Historial para el Gráfico ---
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         const response = await axios.get(
-          `https://api.coingecko.com/api/v3/coins/${id}/market_chart`, 
+          `${BASE_URL}/coins/${id}/market_chart`, 
           { 
             params: { vs_currency: 'usd', days: '7', interval: 'daily' },
-
-
-            headers: {
-            'x-cg-demo-api-key': 'CG-CVSihdKbZ8xoL7sZbKMaGzoZ'
-            }
-            
-          },
-          
+            ...API_HEADERS // ✅ SOLUCONADO: Usamos la constante limpia centralizada
+          }
         );
         
         const formattedData = response.data.prices.map(price => ({
@@ -90,10 +85,14 @@ const Details = () => {
         console.error("Error cargando el gráfico", error);
       }
     };
-    if (id) fetchHistory();
-  }, [id]);
 
-  // --- 6. Análisis de Datos Financieros Memorizado (useMemo) ---
+    // ✅ SOLUCIONADO: No se pide la gráfica hasta que 'coin' esté listo en memoria (Evita el F5 crash/parpadeo)
+    if (id && coin) {
+      fetchHistory();
+    }
+  }, [id, coin]);
+
+  // --- 7. Análisis de Datos Financieros Memorizado (useMemo) ---
   const predictionMetrics = useMemo(() => {
     if (!coin) return null;
 
@@ -129,7 +128,7 @@ const Details = () => {
     };
   }, [coin]);
 
-  // --- 7. Validación de Renderizado Seguro ---
+  // --- 8. Validaciones de Renderizado Seguro ---
   if (isLoading) {
     return <p style={{ textAlign: 'center', color: 'white', marginTop: '40px' }}>Sincronizando datos con la red...</p>;
   }
